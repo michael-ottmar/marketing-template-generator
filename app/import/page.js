@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import FileDropZone from '@/components/FileDropZone';
 import PreviewTable from '@/components/PreviewTable';
+import QAAssistant from '@/components/QAAssistant';
+import QAResultsPanel from '@/components/QAResultsPanel';
 import { parseMultipleWordDocuments } from '@/lib/wordParser';
 import { parseExcelFile } from '@/lib/excelParser';
 import { generateExcelFile } from '@/lib/excelGenerator';
@@ -15,6 +17,8 @@ export default function ImportPage() {
   const [parsedData, setParsedData] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [qaResults, setQAResults] = useState(null);
+  const [showChat, setShowChat] = useState(false);
 
   // Handle Word files upload
   const handleWordFiles = async (files) => {
@@ -223,8 +227,8 @@ export default function ImportPage() {
               `}
             >
               QA Assistant
-              <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
-                Coming Soon
+              <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                New
               </span>
             </button>
           </div>
@@ -394,21 +398,146 @@ export default function ImportPage() {
         )}
 
         {activeTab === 'qa-assistant' && (
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <div className="mb-6">
-                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
+          <>
+            {!parsedData ? (
+              <div className="max-w-3xl mx-auto">
+                <div className="bg-white rounded-lg shadow p-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                    QA Assistant
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Upload Word or Excel files to run AI-powered quality checks on your marketing copy.
+                    Get grammar suggestions, tone analysis, and more.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FileDropZone
+                      acceptedFileTypes={['.docx']}
+                      multiple={true}
+                      maxFiles={20}
+                      maxSizeMB={10}
+                      onFilesAccepted={handleWordFiles}
+                      label="Drop Word Files"
+                      className="h-48"
+                    />
+                    <FileDropZone
+                      acceptedFileTypes={['.xlsx']}
+                      multiple={false}
+                      maxFiles={1}
+                      maxSizeMB={10}
+                      onFilesAccepted={handleExcelFile}
+                      label="Drop Excel File"
+                      className="h-48"
+                    />
+                  </div>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                QA Assistant (Coming Soon)
-              </h2>
-              <p className="text-gray-600">
-                AI-powered copy review and chat assistant to help you find errors and improve your marketing copy.
-              </p>
-            </div>
-          </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      Quality Assurance
+                    </h2>
+                    <p className="text-gray-600 mt-1">
+                      {parsedData.markets?.length || 1} market(s) • {parsedData.rows?.length || parsedData.sections?.length || 0} items
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={async () => {
+                        setIsProcessing(true);
+                        try {
+                          const response = await fetch('/api/qa', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              mode: 'batch',
+                              projectData: parsedData
+                            })
+                          });
+                          const results = await response.json();
+                          setQAResults(results);
+                        } catch (err) {
+                          setError(err.message);
+                        } finally {
+                          setIsProcessing(false);
+                        }
+                      }}
+                      disabled={isProcessing}
+                      className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-300 transition-colors flex items-center gap-2"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Running QA...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                          </svg>
+                          Run QA Check
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowChat(!showChat)}
+                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                      </svg>
+                      {showChat ? 'Hide' : 'Chat with'} Claude
+                    </button>
+                    <button
+                      onClick={() => {
+                        setParsedData(null);
+                        setQAResults(null);
+                        setShowChat(false);
+                      }}
+                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </div>
+
+                {/* QA Results */}
+                {qaResults && (
+                  <QAResultsPanel
+                    results={qaResults}
+                    onClose={() => setQAResults(null)}
+                  />
+                )}
+
+                {/* Chat Assistant */}
+                {showChat && (
+                  <div className="h-[600px]">
+                    <QAAssistant
+                      projectData={parsedData}
+                      onClose={() => setShowChat(false)}
+                    />
+                  </div>
+                )}
+
+                {/* Preview Table */}
+                {!qaResults && !showChat && (
+                  <PreviewTable
+                    data={parsedData}
+                    type={parsedData.rows ? 'excel' : 'word'}
+                    onConfirm={() => {}}
+                    onCancel={() => setParsedData(null)}
+                    showWarnings={true}
+                  />
+                )}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
