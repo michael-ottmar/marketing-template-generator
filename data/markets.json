@@ -1,0 +1,89 @@
+{
+  "markets": [
+    {
+      "code": "en-US",
+      "name": "English (United States)",
+      "region": "North America"
+    },
+    {
+      "code": "en-GB",
+      "name": "English (United Kingdom)",
+      "region": "Europe"
+    },
+    {
+      "code": "ar-SA",
+      "name": "Arabic (Saudi Arabia)",
+      "region": "Middle East"
+    },
+    {
+      "code": "de-DE",
+      "name": "German (Germany)",
+      "region": "Europe"
+    },
+    {
+      "code": "es-ES",
+      "name": "Spanish (Spain)",
+      "region": "Europe"
+    },
+    {
+      "code": "es-MX",
+      "name": "Spanish (Mexico)",
+      "region": "Latin America"
+    },
+    {
+      "code": "fr-FR",
+      "name": "French (France)",
+      "region": "Europe"
+    },
+    {
+      "code": "it-IT",
+      "name": "Italian (Italy)",
+      "region": "Europe"
+    },
+    {
+      "code": "ja-JP",
+      "name": "Japanese (Japan)",
+      "region": "Asia Pacific"
+    },
+    {
+      "code": "ko-KR",
+      "name": "Korean (South Korea)",
+      "region": "Asia Pacific"
+    },
+    {
+      "code": "nl-NL",
+      "name": "Dutch (Netherlands)",
+      "region": "Europe"
+    },
+    {
+      "code": "pl-PL",
+      "name": "Polish (Poland)",
+      "region": "Europe"
+    },
+    {
+      "code": "pt-BR",
+      "name": "Portuguese (Brazil)",
+      "region": "Latin America"
+    },
+    {
+      "code": "pt-PT",
+      "name": "Portuguese (Portugal)",
+      "region": "Europe"
+    },
+    {
+      "code": "ru-RU",
+      "name": "Russian (Russia)",
+      "region": "Europe"
+    },
+    {
+      "code": "zh-CN",
+      "name": "Chinese Simplified (China)",
+      "region": "Asia Pacific"
+    },
+    {
+      "code": "zh-TW",
+      "name": "Chinese Traditional (Taiwan)",
+      "region": "Asia Pacific"
+    }
+  ]
+}
