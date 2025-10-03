@@ -23,13 +23,14 @@ export default function Home() {
 
   const handleGenerate = async () => {
     setIsGenerating(true);
-    
+
     try {
       // Dynamically import the generators
       const { generateExcelFile } = await import('@/lib/excelGenerator');
       const { generateWordDocument, documentToBlob } = await import('@/lib/wordGenerator');
       const JSZip = (await import('jszip')).default;
-      const { saveAs } = await import('file-saver');
+      const fileSaver = await import('file-saver');
+      const saveAs = fileSaver.default?.saveAs || fileSaver.saveAs;
       
       // Prepare deliverable objects
       const deliverables = selectedDeliverables.map(key => ({
