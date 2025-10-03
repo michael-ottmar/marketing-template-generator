@@ -4,7 +4,10 @@ import { useState } from 'react';
 import FileDropZone from '@/components/FileDropZone';
 import PreviewTable from '@/components/PreviewTable';
 import { parseMultipleWordDocuments } from '@/lib/wordParser';
+import { parseExcelFile } from '@/lib/excelParser';
 import { generateExcelFile } from '@/lib/excelGenerator';
+import { generateWordDocument, documentToBlob } from '@/lib/wordGenerator';
+import marketsData from '@/data/markets.json';
 
 export default function ImportPage() {
   const [activeTab, setActiveTab] = useState('word-to-excel');
@@ -43,6 +46,24 @@ export default function ImportPage() {
     }
   };
 
+  // Handle Excel file upload
+  const handleExcelFile = async (files) => {
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const parsedExcel = await parseExcelFile(files[0]);
+      setParsedData(parsedExcel);
+      setStep('preview');
+
+    } catch (err) {
+      console.error('Error processing Excel file:', err);
+      setError(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Handle Excel generation from Word
   const handleGenerateExcel = () => {
     setIsProcessing(true);
@@ -66,6 +87,58 @@ export default function ImportPage() {
 
     } catch (err) {
       console.error('Error generating Excel:', err);
+      setError(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle Word generation from Excel
+  const handleGenerateWord = async () => {
+    setIsProcessing(true);
+
+    try {
+      const JSZip = (await import('jszip')).default;
+      const fileSaver = await import('file-saver');
+      const saveAs = fileSaver.default?.saveAs || fileSaver.saveAs;
+
+      const zip = new JSZip();
+
+      // Generate Word doc for each market
+      for (const marketCode of parsedData.markets) {
+        const market = marketsData.markets.find(m => m.code === marketCode) || {
+          code: marketCode,
+          name: marketCode,
+          language: marketCode.split('-')[0]
+        };
+
+        // Build deliverable structure for this market
+        const deliverable = {
+          sections: Object.values(parsedData.grouped).map(section => ({
+            name: section.name,
+            fields: section.fields.map(field => ({
+              name: field.name,
+              content: field.content[marketCode] || ''
+            }))
+          }))
+        };
+
+        // Generate Word document
+        const doc = generateWordDocument(deliverable, market);
+        const blob = await documentToBlob(doc);
+
+        // Add to ZIP
+        zip.file(`Marketing_Copy_${marketCode}.docx`, blob);
+      }
+
+      // Generate and download ZIP
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      saveAs(zipBlob, `Excel_to_Word_${Date.now()}.zip`);
+
+      setStep('complete');
+
+    } catch (err) {
+      console.error('Error generating Word documents:', err);
       setError(err.message);
     } finally {
       setIsProcessing(false);
@@ -211,8 +284,8 @@ export default function ImportPage() {
             {step === 'preview' && parsedData && (
               <PreviewTable
                 data={parsedData}
-                type="word"
-                onConfirm={handleGenerateExcel}
+                type={activeTab === 'word-to-excel' ? 'word' : 'excel'}
+                onConfirm={activeTab === 'word-to-excel' ? handleGenerateExcel : handleGenerateWord}
                 onCancel={resetFlow}
                 showWarnings={true}
               />
@@ -245,21 +318,79 @@ export default function ImportPage() {
         )}
 
         {activeTab === 'excel-to-word' && (
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <div className="mb-6">
-                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+          <>
+            {step === 'upload' && (
+              <div className="max-w-3xl mx-auto">
+                <div className="bg-white rounded-lg shadow p-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                    Import Excel Template
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Upload an Excel localization template to generate Word documents for each market.
+                    The system will read the Copy Template tab and create formatted Word files.
+                  </p>
+
+                  <FileDropZone
+                    acceptedFileTypes={['.xlsx']}
+                    multiple={false}
+                    maxFiles={1}
+                    maxSizeMB={10}
+                    onFilesAccepted={handleExcelFile}
+                    label="Drop Excel File Here"
+                    icon={
+                      <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    }
+                  />
+
+                  {isProcessing && (
+                    <div className="mt-6 flex items-center justify-center gap-3 text-gray-600">
+                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Processing Excel file...</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Excel → Word (Coming Soon)
-              </h2>
-              <p className="text-gray-600">
-                This feature will allow you to convert Excel templates back to Word documents.
-              </p>
-            </div>
-          </div>
+            )}
+
+            {step === 'preview' && parsedData && (
+              <PreviewTable
+                data={parsedData}
+                type="excel"
+                onConfirm={handleGenerateWord}
+                onCancel={resetFlow}
+                showWarnings={true}
+              />
+            )}
+
+            {step === 'complete' && (
+              <div className="max-w-3xl mx-auto">
+                <div className="bg-white rounded-lg shadow p-8 text-center">
+                  <div className="mb-6">
+                    <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    Word Documents Generated!
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Your Excel template has been successfully converted to Word documents for all markets.
+                  </p>
+                  <button
+                    onClick={resetFlow}
+                    className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Import Another File
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {activeTab === 'qa-assistant' && (
