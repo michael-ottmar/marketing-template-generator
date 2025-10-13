@@ -544,58 +544,112 @@ export default function ImportPage() {
   );
 }
 
-// Helper: Merge multiple Word documents
+// Helper: Merge multiple Word documents (each doc = different market)
 function mergeWordDocuments(parsedDocuments) {
-  if (parsedDocuments.length === 1) {
-    return parsedDocuments[0];
-  }
+  // Each Word doc represents a different market
+  // We need to merge them into a structure with multiple markets
 
-  // Merge all documents - assuming same market
-  const merged = {
-    market: parsedDocuments[0].market,
-    sections: [],
+  const allMarkets = parsedDocuments.map(doc => doc.market);
+  const allWarnings = [];
+
+  // Build a map of deliverable -> field -> {market: content}
+  const contentMap = {};
+
+  parsedDocuments.forEach(doc => {
+    allWarnings.push(...(doc.metadata.warnings || []));
+
+    doc.sections.forEach(section => {
+      const deliverableName = section.deliverable;
+
+      if (!contentMap[deliverableName]) {
+        contentMap[deliverableName] = {};
+      }
+
+      section.fields.forEach(field => {
+        const fieldName = field.name;
+
+        if (!contentMap[deliverableName][fieldName]) {
+          contentMap[deliverableName][fieldName] = {};
+        }
+
+        // Store content for this market
+        contentMap[deliverableName][fieldName][doc.market] = field.content;
+      });
+    });
+  });
+
+  // Convert to rows format for Excel generation
+  const rows = [];
+  Object.entries(contentMap).forEach(([deliverable, fields]) => {
+    Object.entries(fields).forEach(([fieldName, marketContent]) => {
+      rows.push({
+        deliverable,
+        field: fieldName,
+        content: marketContent
+      });
+    });
+  });
+
+  return {
+    markets: allMarkets,
+    rows,
     metadata: {
       filename: `${parsedDocuments.length} documents`,
       parsedAt: new Date(),
-      warnings: []
+      warnings: allWarnings
     }
   };
-
-  parsedDocuments.forEach(doc => {
-    merged.sections.push(...doc.sections);
-    merged.metadata.warnings.push(...(doc.metadata.warnings || []));
-  });
-
-  return merged;
 }
 
 // Helper: Transform Word data to Excel format
 function transformWordDataToExcel(wordData) {
-  const deliverables = [];
-  const markets = [wordData.market];
+  // wordData now has: { markets: [], rows: [], metadata: {} }
 
-  wordData.sections.forEach(section => {
-    const deliverable = {
-      name: section.deliverable,
-      sections: [{
-        name: section.deliverable,
-        fields: section.fields.map(f => f.name)
-      }]
-    };
+  // Build deliverables structure from rows
+  const deliverableMap = {};
 
-    deliverables.push(deliverable);
+  wordData.rows.forEach(row => {
+    if (!deliverableMap[row.deliverable]) {
+      deliverableMap[row.deliverable] = {
+        name: row.deliverable,
+        sections: [{
+          name: row.deliverable,
+          fields: []
+        }]
+      };
+    }
+
+    // Add field if not already present
+    if (!deliverableMap[row.deliverable].sections[0].fields.includes(row.field)) {
+      deliverableMap[row.deliverable].sections[0].fields.push(row.field);
+    }
   });
 
-  // Create market object
-  const marketObj = {
-    code: wordData.market,
-    name: wordData.market,
-    language: wordData.market.split('-')[0]
-  };
+  const deliverables = Object.values(deliverableMap);
+
+  // Create market objects with proper structure
+  const markets = wordData.markets.map(marketCode => {
+    // Try to find full market info from marketsData
+    const fullMarket = marketsData.markets.find(m => m.code === marketCode);
+
+    if (fullMarket) {
+      return fullMarket;
+    }
+
+    // Fallback if not found
+    return {
+      code: marketCode,
+      name: marketCode,
+      language: marketCode.split('-')[0],
+      region: 'Unknown'
+    };
+  });
 
   return {
     deliverables,
-    markets: [marketObj],
-    projectName: `Import_${wordData.market}_${Date.now()}`
+    markets,
+    projectName: `Import_${wordData.markets.join('_')}_${Date.now()}`,
+    // Pass through the actual content
+    contentRows: wordData.rows
   };
 }
