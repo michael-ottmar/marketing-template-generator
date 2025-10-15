@@ -45,7 +45,7 @@ export default function Home() {
       );
       
       // Generate Excel file
-      const excelBlob = generateExcelFile({
+      const excelBlob = await generateExcelFile({
         deliverables,
         markets,
         projectName,

@@ -69,7 +69,7 @@ export default function ImportPage() {
   };
 
   // Handle Excel generation from Word
-  const handleGenerateExcel = () => {
+  const handleGenerateExcel = async () => {
     setIsProcessing(true);
 
     try {
@@ -83,8 +83,8 @@ export default function ImportPage() {
       // Add leadLanguage to excelData
       excelData.leadLanguage = leadLanguage;
 
-      // Generate Excel file
-      const excelBlob = generateExcelFile(excelData);
+      // Generate Excel file (now async)
+      const excelBlob = await generateExcelFile(excelData);
 
       // Download with date
       const formattedDate = new Date().toISOString().split('T')[0];
