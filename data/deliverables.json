@@ -1,6 +1,7 @@
 {
   "Product Detail Page": {
     "id": "pdp",
+    "category": "Product Pages",
     "description": "Complete product detail page with galleries and modules",
     "sections": [
       {
@@ -145,6 +146,7 @@
   },
   "Display Ads - Amazon Package A": {
     "id": "amazon_a",
+    "category": "Display Ads",
     "description": "Standard Amazon display ad sizes",
     "sections": [
       {
@@ -201,6 +203,7 @@
   },
   "Display Ads - Amazon Package B": {
     "id": "amazon_b",
+    "category": "Display Ads",
     "description": "Extended Amazon display ad sizes with video",
     "sections": [
       {
@@ -246,6 +249,7 @@
   },
   "Display Ads - Argos Package": {
     "id": "argos",
+    "category": "Display Ads",
     "description": "Argos retailer display specifications",
     "sections": [
       {
@@ -290,6 +294,7 @@
   },
   "Display Ads - Currys Package": {
     "id": "currys",
+    "category": "Display Ads",
     "description": "Currys retailer display specifications",
     "sections": [
       {
@@ -334,6 +339,7 @@
   },
   "CRM Email Modules": {
     "id": "crm",
+    "category": "CRM",
     "description": "Email marketing module templates",
     "sections": [
       {
@@ -374,6 +380,7 @@
   },
   "Landing Page": {
     "id": "landing",
+    "category": "Landing Pages",
     "description": "Marketing landing page with modular sections",
     "sections": [
       {
