@@ -11,6 +11,7 @@ export default function Home() {
   const [step, setStep] = useState(1);
   const [selectedDeliverables, setSelectedDeliverables] = useState([]);
   const [selectedMarkets, setSelectedMarkets] = useState(['en-US']);
+  const [leadLanguage, setLeadLanguage] = useState('en-US');
   const [projectName, setProjectName] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -47,21 +48,23 @@ export default function Home() {
       const excelBlob = generateExcelFile({
         deliverables,
         markets,
-        projectName
+        projectName,
+        leadLanguage
       });
       
       // Generate Word documents for each market
+      const formattedDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       const wordDocs = await Promise.all(
         markets.map(async (market) => {
           // For each market, create a doc with all selected deliverables
           const combinedDeliverable = {
             sections: deliverables.flatMap(d => d.sections)
           };
-          
-          const doc = generateWordDocument(combinedDeliverable, market);
+
+          const doc = generateWordDocument(combinedDeliverable, market, projectName);
           const blob = await documentToBlob(doc);
           return {
-            filename: `Marketing_Copy_${market.code}.docx`,
+            filename: `${projectName}_Marketing_Copy_${market.code}_${formattedDate}.docx`,
             blob
           };
         })
@@ -69,9 +72,9 @@ export default function Home() {
       
       // Create ZIP file
       const zip = new JSZip();
-      
-      // Add Excel file
-      zip.file(`${projectName}_Localization_Template.xlsx`, excelBlob);
+
+      // Add Excel file with date
+      zip.file(`${projectName}_Localization_Template_${formattedDate}.xlsx`, excelBlob);
       
       // Add Word documents in a subfolder
       const wordFolder = zip.folder('Word_Documents');
@@ -195,6 +198,8 @@ export default function Home() {
             markets={marketsData.markets}
             selected={selectedMarkets}
             onChange={setSelectedMarkets}
+            leadLanguage={leadLanguage}
+            onLeadLanguageChange={setLeadLanguage}
           />
         )}
 

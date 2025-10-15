@@ -76,14 +76,22 @@ export default function ImportPage() {
       // Transform parsed Word data to Excel format
       const excelData = transformWordDataToExcel(parsedData);
 
+      // Determine lead language (prefer en-US, otherwise first market alphabetically)
+      const leadLanguage = excelData.markets.find(m => m.code === 'en-US')?.code ||
+                          excelData.markets.sort((a, b) => a.code.localeCompare(b.code))[0]?.code;
+
+      // Add leadLanguage to excelData
+      excelData.leadLanguage = leadLanguage;
+
       // Generate Excel file
       const excelBlob = generateExcelFile(excelData);
 
-      // Download
+      // Download with date
+      const formattedDate = new Date().toISOString().split('T')[0];
       const url = URL.createObjectURL(excelBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Import_${parsedData.market}_${Date.now()}.xlsx`;
+      a.download = `Import_${parsedData.markets ? parsedData.markets.join('_') : parsedData.market}_${formattedDate}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
 
@@ -107,6 +115,8 @@ export default function ImportPage() {
       const saveAs = fileSaver.default?.saveAs || fileSaver.saveAs;
 
       const zip = new JSZip();
+      const formattedDate = new Date().toISOString().split('T')[0];
+      const projectName = parsedData.projectName || `Excel_Import_${Date.now()}`;
 
       // Generate Word doc for each market
       for (const marketCode of parsedData.markets) {
@@ -127,17 +137,17 @@ export default function ImportPage() {
           }))
         };
 
-        // Generate Word document
-        const doc = generateWordDocument(deliverable, market);
+        // Generate Word document with projectName
+        const doc = generateWordDocument(deliverable, market, projectName);
         const blob = await documentToBlob(doc);
 
-        // Add to ZIP
-        zip.file(`Marketing_Copy_${marketCode}.docx`, blob);
+        // Add to ZIP with new naming format
+        zip.file(`${projectName}_Marketing_Copy_${marketCode}_${formattedDate}.docx`, blob);
       }
 
-      // Generate and download ZIP
+      // Generate and download ZIP with new naming format
       const zipBlob = await zip.generateAsync({ type: 'blob' });
-      saveAs(zipBlob, `Excel_to_Word_${Date.now()}.zip`);
+      saveAs(zipBlob, `${projectName}_Marketing_Templates_${formattedDate}.zip`);
 
       setStep('complete');
 
