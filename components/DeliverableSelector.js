@@ -32,7 +32,27 @@ export default function DeliverableSelector({ deliverables, selected, onChange }
   };
 
   const countTotalFields = (deliverable) => {
-    return deliverable.sections?.reduce((sum, section) => sum + section.fields.length, 0) || 0;
+    return deliverable.sections?.reduce((sum, section) => {
+      if (section.subsections) {
+        // Nested structure (Product Detail Page)
+        return sum + section.subsections.reduce((subSum, subsection) =>
+          subSum + (subsection.fields?.length || 0), 0
+        );
+      }
+      // Flat structure (Display Ads, CRM, Landing Page)
+      return sum + (section.fields?.length || 0);
+    }, 0) || 0;
+  };
+
+  const countTotalSections = (deliverable) => {
+    return deliverable.sections?.reduce((sum, section) => {
+      if (section.subsections) {
+        // Count subsections for nested structure
+        return sum + section.subsections.length;
+      }
+      // Count section itself for flat structure
+      return sum + 1;
+    }, 0) || 0;
   };
 
   const getCategoryIcon = (category) => {
@@ -159,7 +179,7 @@ export default function DeliverableSelector({ deliverables, selected, onChange }
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                   </svg>
-                                  {item.sections?.length || 0} sections
+                                  {countTotalSections(item)} sections
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,14 +268,32 @@ export default function DeliverableSelector({ deliverables, selected, onChange }
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               {/* Sections */}
               <div className="mb-6">
-                <h4 className="font-semibold text-gray-900 mb-3">Content Sections ({infoModal.sections?.length || 0})</h4>
-                <div className="space-y-2">
+                <h4 className="font-semibold text-gray-900 mb-3">Content Sections ({countTotalSections(infoModal)})</h4>
+                <div className="space-y-3">
                   {infoModal.sections?.map((section, idx) => (
-                    <div key={idx} className="bg-gray-50 rounded-md p-3">
-                      <div className="font-medium text-gray-900 text-sm">{section.name}</div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        Fields: {section.fields.join(', ')}
-                      </div>
+                    <div key={idx}>
+                      {section.subsections ? (
+                        // Nested structure (Product Detail Page)
+                        <div className="space-y-2">
+                          <div className="font-semibold text-gray-800 text-sm mb-2">{section.name}</div>
+                          {section.subsections.map((subsection, subIdx) => (
+                            <div key={subIdx} className="bg-gray-50 rounded-md p-3 ml-4">
+                              <div className="font-medium text-gray-900 text-sm">{subsection.name}</div>
+                              <div className="text-xs text-gray-600 mt-1">
+                                Fields: {subsection.fields.join(', ')}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        // Flat structure (Display Ads, CRM, Landing Page)
+                        <div className="bg-gray-50 rounded-md p-3">
+                          <div className="font-medium text-gray-900 text-sm">{section.name}</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            Fields: {section.fields.join(', ')}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

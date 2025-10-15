@@ -2,71 +2,89 @@
   "Product Detail Page": {
     "id": "pdp",
     "category": "Product Pages",
-    "description": "Complete product detail page with galleries and modules",
+    "description": "Complete product detail page with above and below fold content",
     "sections": [
       {
-        "name": "Gallery 1",
-        "fields": ["Headline", "Body", "Legal"]
+        "name": "Product Detail Page - Above the Fold",
+        "subsections": [
+          {
+            "name": "Product Description",
+            "fields": ["Product Title", "Body"]
+          },
+          {
+            "name": "Product Bullets",
+            "fields": ["Bullet 1", "Bullet 2", "Bullet 3", "Bullet 4", "Bullet 5"]
+          },
+          {
+            "name": "Product Legal",
+            "fields": ["Legal", "Disclaimer 1", "Disclaimer 2"]
+          },
+          {
+            "name": "Gallery 1",
+            "fields": ["Headline", "Body", "Legal"]
+          },
+          {
+            "name": "Gallery 2",
+            "fields": ["Headline", "Body", "Legal"]
+          },
+          {
+            "name": "Gallery 3",
+            "fields": ["Headline", "Body", "Legal"]
+          },
+          {
+            "name": "Gallery 4",
+            "fields": ["Headline", "Body", "Legal"]
+          },
+          {
+            "name": "Gallery 5",
+            "fields": ["Headline", "Body", "Legal"]
+          },
+          {
+            "name": "Gallery 6",
+            "fields": ["Headline", "Body", "Legal"]
+          },
+          {
+            "name": "Gallery 7",
+            "fields": ["Headline", "Body", "Legal"]
+          },
+          {
+            "name": "Gallery 8",
+            "fields": ["Headline", "Body", "Legal"]
+          }
+        ]
       },
       {
-        "name": "Gallery 2",
-        "fields": ["Headline", "Body", "Legal"]
-      },
-      {
-        "name": "Gallery 3",
-        "fields": ["Headline", "Body", "Legal"]
-      },
-      {
-        "name": "Gallery 4",
-        "fields": ["Headline", "Body", "Legal"]
-      },
-      {
-        "name": "Gallery 5",
-        "fields": ["Headline", "Body", "Legal"]
-      },
-      {
-        "name": "Gallery 6",
-        "fields": ["Headline", "Body", "Legal"]
-      },
-      {
-        "name": "Gallery 7",
-        "fields": ["Headline", "Body", "Legal"]
-      },
-      {
-        "name": "Gallery 8",
-        "fields": ["Headline", "Body", "Legal"]
-      },
-      {
-        "name": "Hero Banner",
-        "fields": ["Headline", "Body", "CTA"]
-      },
-      {
-        "name": "Features Section",
-        "fields": ["Headline", "Feature 1", "Feature 2", "Feature 3"]
-      },
-      {
-        "name": "Specifications",
-        "fields": ["Headline", "Body", "CTA"]
-      },
-      {
-        "name": "Reviews Section",
-        "fields": ["Headline", "Body", "CTA"]
-      },
-      {
-        "name": "FAQ Section",
-        "fields": ["Headline", "Question 1", "Answer 1"]
-      },
-      {
-        "name": "Sustainability",
-        "fields": ["Headline", "Body", "CTA"]
-      },
-      {
-        "name": "Call to Action",
-        "fields": ["Headline", "Body", "CTA"]
-      },
-      {
-        "name": "Footer",
-        "fields": ["Disclaimer"]
+        "name": "Product Detail Page - Below the Fold",
+        "subsections": [
+          {
+            "name": "Module 1",
+            "fields": ["Headline", "Body", "CTA"]
+          },
+          {
+            "name": "Module 2",
+            "fields": ["Headline", "Body", "CTA"]
+          },
+          {
+            "name": "Module 3",
+            "fields": ["Headline", "Body", "CTA"]
+          },
+          {
+            "name": "Module 4",
+            "fields": ["Headline", "Body", "CTA"]
+          },
+          {
+            "name": "Module 5",
+            "fields": ["Headline", "Body", "CTA"]
+          },
+          {
+            "name": "Module 6",
+            "fields": ["Headline", "Body", "CTA"]
+          },
+          {
+            "name": "Module 7",
+            "fields": ["Headline", "Body", "CTA"]
+          }
+        ]
       }
     ],
     "assets": [
