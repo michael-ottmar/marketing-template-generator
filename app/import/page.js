@@ -86,12 +86,13 @@ export default function ImportPage() {
       // Generate Excel file (now async)
       const excelBlob = await generateExcelFile(excelData);
 
-      // Download with date
+      // Download with project name and date
       const formattedDate = new Date().toISOString().split('T')[0];
+      const projectName = parsedData.projectName || 'Word_Import';
       const url = URL.createObjectURL(excelBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Import_${parsedData.markets ? parsedData.markets.join('_') : parsedData.market}_${formattedDate}.xlsx`;
+      a.download = `${projectName}_Localization_Template_${formattedDate}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
 
@@ -562,6 +563,9 @@ function mergeWordDocuments(parsedDocuments) {
   const allMarkets = parsedDocuments.map(doc => doc.market);
   const allWarnings = [];
 
+  // Extract project name from first document (should be same for all)
+  const projectName = parsedDocuments[0]?.projectName || 'Word_Import';
+
   // Build a map of deliverable -> field -> {market: content}
   const contentMap = {};
 
@@ -603,6 +607,7 @@ function mergeWordDocuments(parsedDocuments) {
   return {
     markets: allMarkets,
     rows,
+    projectName,
     metadata: {
       filename: `${parsedDocuments.length} documents`,
       parsedAt: new Date(),
